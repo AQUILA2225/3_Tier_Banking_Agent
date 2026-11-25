@@ -5,6 +5,7 @@ from app.api.v1.router import api_router
 from app.api.error_handlers import register_exception_handlers
 from app.core.config import settings
 from app.core.logging import setup_logging, get_logger
+from app.middleware.request_logging import RequestLoggingMiddleware
 
 # Initialize application logging
 setup_logging()
@@ -31,6 +32,9 @@ app = FastAPI(
     debug=False,
     lifespan=lifespan 
 )
+
+# Register middleware
+app.add_middleware(RequestLoggingMiddleware)
 
 # Register centralized exception handlers
 register_exception_handlers(app)

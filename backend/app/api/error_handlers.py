@@ -8,12 +8,14 @@ from starlette.exceptions import HTTPException
 
 from app.core.exceptions import AppException
 from app.core.logging import get_logger
+from app.core.request_context import get_request_id
 
 
 logger = get_logger(__name__)
 
 
 def build_error_response(
+    request: Request,
     status_code: int,
     code: str,
     message: str,
@@ -21,6 +23,14 @@ def build_error_response(
     headers: dict[str, str] | None = None
 ) -> JSONResponse:
 
+    request_id = getattr(
+        request.state,
+        "request_id",
+        get_request_id()
+    )
+    response_headers = dict(headers or {})
+    response_headers["X-Request-ID"] = request_id
+    
     return JSONResponse(
         status_code=status_code,
         headers=headers,
@@ -29,7 +39,8 @@ def build_error_response(
             "error": {
                 "code": code,
                 "message": message,
-                "details": details
+                "details": details,
+                "request_id": request_id
             }
         }
     )
@@ -58,7 +69,6 @@ async def app_exception_handler(
         headers=headers
     )
 
-
 async def http_exception_handler(
     request: Request,
     exc: HTTPException
@@ -76,6 +86,7 @@ async def http_exception_handler(
     }
 
     return build_error_response(
+        request=request,
         status_code=exc.status_code,
         code=f"HTTP_{exc.status_code}",
         message=messages.get(
@@ -92,7 +103,6 @@ async def validation_exception_handler(
 ) -> JSONResponse:
 
     errors = []
-
     for error in exc.errors():
         errors.append({
             "field": ".".join(
@@ -117,12 +127,20 @@ async def unhandled_exception_handler(
     exc: Exception
 ) -> JSONResponse:
 
+    request_id = getattr(
+        request.state,
+        "request_id",
+        "-"
+    )
+    
     logger.error(
-        "Unhandled application exception: %s",
-        type(exc).__name__
+        "Unhandled application exception: %s | failed_request_id=%s",
+        type(exc).__name__,
+        request_id
     )
 
     return build_error_response(
+        request=request,
         status_code=500,
         code="INTERNAL_SERVER_ERROR",
         message="An unexpected error occurred."
