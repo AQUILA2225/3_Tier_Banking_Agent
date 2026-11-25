@@ -26,6 +26,15 @@ class Settings(BaseSettings):
         default="/api/v1",
         pattern=r"^/[a-zA-Z0-9/_-]+$"
     )
+    
+    # Logging Configuration
+    log_level: Literal[
+        "DEBUG",
+        "INFO",
+        "WARNING",
+        "ERROR",
+        "CRITICAL",
+    ] = "INFO"
 
     # Environment configuration
     model_config = SettingsConfigDict(

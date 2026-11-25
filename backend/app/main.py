@@ -1,9 +1,28 @@
-
+from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
 from app.api.v1.router import api_router
 from app.core.config import settings
+from app.core.logging import setup_logging, get_logger
 
+# Initialize application logging
+setup_logging()
+logger = get_logger(__name__)
+
+# Application lifecycle
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    logger.info("Banking Agent API starting")
+    logger.info("Environment: %s", settings.app_env)
+    logger.info("Application version: %s", settings.app_version)
+    logger.debug("Debug logging is enabled")
+
+    try:
+        yield
+    finally:
+        logger.info("Banking Agent API shutting down")
+
+# Create FastAPI application
 app = FastAPI(
     title=settings.app_name, 
     description=("AI Banking Agent with Guardrails and Human-in-the-Loop"),
