@@ -2,6 +2,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
 from app.api.v1.router import api_router
+from app.api.error_handlers import register_exception_handlers
 from app.core.config import settings
 from app.core.logging import setup_logging, get_logger
 
@@ -27,8 +28,12 @@ app = FastAPI(
     title=settings.app_name, 
     description=("AI Banking Agent with Guardrails and Human-in-the-Loop"),
     version=settings.app_version,
-    debug=settings.debug
+    debug=False,
+    lifespan=lifespan 
 )
+
+# Register centralized exception handlers
+register_exception_handlers(app)
 
 @app.get("/")
 def home():
@@ -38,7 +43,7 @@ def home():
         "environment":settings.app_env
     }
 
-
+# Register versioned API routes
 app.include_router(
     api_router,
     prefix=settings.api_v1_prefix
