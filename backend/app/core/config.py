@@ -1,8 +1,9 @@
 from functools import lru_cache
 from pathlib import Path 
 from typing import Literal 
+from urllib.parse import urlsplit
 
-from pydantic import Field
+from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 # Project root directory
@@ -35,6 +36,65 @@ class Settings(BaseSettings):
         "ERROR",
         "CRITICAL",
     ] = "INFO"
+    
+    # CORS configuration
+    cors_allowed_origins: list[str] = Field(
+        default_factory=list
+    )
+
+    cors_allow_credentials: bool = False
+
+    cors_max_age: int = Field(
+        default=600,
+        ge=0,
+        le=86400
+    )
+
+    # Validate allowed origins
+    @field_validator("cors_allowed_origins")
+    @classmethod
+    def validate_cors_origins(
+        cls,
+        origins: list[str]
+    ) -> list[str]:
+
+        validated_origins = []
+
+        for origin in origins:
+
+            origin = origin.strip()
+
+            if "*" in origin:
+                raise ValueError(
+                    "Wildcard CORS origins are not allowed."
+                )
+
+            parsed = urlsplit(origin)
+
+            if (
+                parsed.scheme not in ("http", "https")
+                or not parsed.hostname
+                or parsed.username is not None
+                or parsed.password is not None
+                or parsed.path
+                or parsed.query
+                or parsed.fragment
+                or "?" in origin
+                or "#" in origin
+                or any(char.isspace() for char in origin)
+            ):
+                raise ValueError(
+                    "CORS origins must contain only "
+                    "a valid scheme, hostname and optional port."
+                )
+
+            # Validate port number if provided
+            _ = parsed.port
+
+            validated_origins.append(origin)
+
+        return list(dict.fromkeys(validated_origins))
+
 
     # Environment configuration
     model_config = SettingsConfigDict(
