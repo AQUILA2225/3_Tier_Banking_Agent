@@ -30,6 +30,12 @@ class Beneficiary(Base):
             "account_id",
             name="uq_beneficiaries_user_id_account_id"
         ),
+        UniqueConstraint(
+            "id",
+            "user_id",
+            "account_id",
+            name="uq_beneficiaries_id_user_account"
+        ),
     )
 
     id: Mapped[UUID] = mapped_column(
@@ -81,5 +87,6 @@ class Beneficiary(Base):
 
     transactions: Mapped[list["Transaction"]] = relationship(
         back_populates="beneficiary",
+        foreign_keys="Transaction.beneficiary_id",
         passive_deletes="all"
     )

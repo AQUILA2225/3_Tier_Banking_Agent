@@ -11,6 +11,7 @@ from sqlalchemy import (
     Numeric,
     String,
     Uuid,
+    UniqueConstraint,
     func
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -52,6 +53,15 @@ class Account(Base):
         CheckConstraint(
             "currency = 'INR'",
             name="valid_currency"
+        ),
+        CheckConstraint(
+            "balance <> 'NaN'::numeric",
+            name="finite_balance"
+        ),
+        UniqueConstraint(
+            "id",
+            "user_id",
+            name="uq_accounts_id_user_id"
         ),
     )
 

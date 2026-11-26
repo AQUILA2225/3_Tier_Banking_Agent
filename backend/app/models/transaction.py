@@ -12,6 +12,7 @@ from sqlalchemy import (
     Numeric,
     String,
     UniqueConstraint,
+    ForeignKeyConstraint,
     Uuid,
     func
 )
@@ -81,6 +82,30 @@ class Transaction(Base):
             "ix_transactions_status_created_at",
             "status",
             "created_at"
+        ),
+            CheckConstraint(
+            "amount <> 'NaN'::numeric",
+            name="finite_amount"
+        ),
+        ForeignKeyConstraint(
+            ["source_account_id", "initiated_by"],
+            ["accounts.id", "accounts.user_id"],
+            name="fk_transactions_source_account_owner",
+            ondelete="RESTRICT"
+        ),
+        ForeignKeyConstraint(
+            [
+                "beneficiary_id",
+                "initiated_by",
+                "destination_account_id"
+            ],
+            [
+                "beneficiaries.id",
+                "beneficiaries.user_id",
+                "beneficiaries.account_id"
+            ],
+            name="fk_transactions_beneficiary_consistency",
+            ondelete="RESTRICT"
         ),
     )
 
@@ -170,7 +195,8 @@ class Transaction(Base):
         # ORM Relationships
 
     initiator: Mapped["User"] = relationship(
-        back_populates="initiated_transactions"
+        back_populates="initiated_transactions",
+        foreign_keys=[initiated_by]
     )
 
     source_account: Mapped["Account"] = relationship(
@@ -184,7 +210,8 @@ class Transaction(Base):
     )
 
     beneficiary: Mapped["Beneficiary"] = relationship(
-        back_populates="transactions"
+        back_populates="transactions",
+        foreign_keys=[beneficiary_id]
     )
 
     fraud_assessments: Mapped[list["FraudAssessment"]] = relationship(

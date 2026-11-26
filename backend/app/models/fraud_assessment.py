@@ -8,6 +8,7 @@ from sqlalchemy import (
     CheckConstraint,
     DateTime,
     ForeignKey,
+    UniqueConstraint,
     Index,
     Integer,
     String,
@@ -49,6 +50,11 @@ class FraudAssessment(Base):
             "ix_fraud_assessments_transaction_created_at",
             "transaction_id",
             "created_at"
+        ),
+            UniqueConstraint(
+            "id",
+            "transaction_id",
+            name="uq_fraud_assessments_id_transaction"
         ),
     )
 
@@ -99,5 +105,6 @@ class FraudAssessment(Base):
 
     reviews: Mapped[list["Review"]] = relationship(
         back_populates="fraud_assessment",
+        foreign_keys="Review.fraud_assessment_id",
         passive_deletes="all"
     )

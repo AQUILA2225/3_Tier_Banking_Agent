@@ -220,3 +220,12 @@ COMPLETED, REJECTED and FAILED are terminal states.
   named database check constraints.
 - Enforce one pending review per transaction using
   a partial unique index.
+
+## Database Integrity Hardening
+
+- Reject NaN values in account balances and transfer amounts.
+- Enforce source account ownership using composite foreign keys.
+- Enforce beneficiary ownership and destination consistency.
+- Ensure reviews reference assessments of the correct transaction.
+- Preserve existing foreign keys and restricted deletion rules.
+- Validate these constraints through PostgreSQL integration tests.

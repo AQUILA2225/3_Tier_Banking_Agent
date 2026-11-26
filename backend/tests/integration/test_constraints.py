@@ -501,3 +501,104 @@ def test_empty_audit_entity_type_rejected(db_session):
         db_session,
         "ck_audit_logs_valid_entity_type"
     )
+    
+def test_nan_account_balance_rejected(db_session):
+
+    user = create_user(db_session)
+    account = create_account(db_session, user)
+
+    account.balance = Decimal("NaN")
+
+    assert_constraint_violation(
+        db_session,
+        "ck_accounts_finite_balance"
+    )
+
+
+def test_nan_transaction_amount_rejected(db_session):
+
+    transaction = create_transaction(db_session)
+    transaction.amount = Decimal("NaN")
+
+    assert_constraint_violation(
+        db_session,
+        "ck_transactions_finite_amount"
+    )
+
+
+def test_unauthorized_source_account_rejected(db_session):
+
+    transaction = create_transaction(db_session)
+
+    another_user = create_user(db_session)
+    another_account = create_account(
+        db_session,
+        another_user
+    )
+
+    transaction.source_account_id = another_account.id
+
+    assert_constraint_violation(
+        db_session,
+        "fk_transactions_source_account_owner"
+    )
+
+
+def test_another_users_beneficiary_rejected(db_session):
+
+    transaction = create_transaction(db_session)
+
+    another_user = create_user(db_session)
+
+    beneficiary = Beneficiary(
+        user_id=another_user.id,
+        account_id=transaction.destination_account_id,
+        nickname="Another User Recipient"
+    )
+
+    db_session.add(beneficiary)
+    db_session.flush()
+
+    transaction.beneficiary_id = beneficiary.id
+
+    assert_constraint_violation(
+        db_session,
+        "fk_transactions_beneficiary_consistency"
+    )
+
+
+def test_beneficiary_destination_mismatch_rejected(db_session):
+
+    transaction = create_transaction(db_session)
+
+    another_user = create_user(db_session)
+    another_account = create_account(
+        db_session,
+        another_user
+    )
+
+    transaction.destination_account_id = another_account.id
+
+    assert_constraint_violation(
+        db_session,
+        "fk_transactions_beneficiary_consistency"
+    )
+
+
+def test_review_assessment_mismatch_rejected(db_session):
+
+    assessment = create_assessment(db_session)
+    another_transaction = create_transaction(db_session)
+
+    review = Review(
+        transaction_id=another_transaction.id,
+        fraud_assessment_id=assessment.id,
+        status="PENDING"
+    )
+
+    db_session.add(review)
+
+    assert_constraint_violation(
+        db_session,
+        "fk_reviews_assessment_transaction"
+    )

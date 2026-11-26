@@ -7,6 +7,7 @@ from sqlalchemy import (
     CheckConstraint,
     DateTime,
     ForeignKey,
+    ForeignKeyConstraint,
     Index,
     String,
     Text,
@@ -56,6 +57,15 @@ class Review(Base):
             "ix_reviews_status_created_at",
             "status",
             "created_at"
+        ),
+        ForeignKeyConstraint(
+            ["fraud_assessment_id", "transaction_id"],
+            [
+                "fraud_assessments.id",
+                "fraud_assessments.transaction_id"
+            ],
+            name="fk_reviews_assessment_transaction",
+            ondelete="RESTRICT"
         ),
     )
 
@@ -114,9 +124,10 @@ class Review(Base):
     transaction: Mapped["Transaction"] = relationship(
         back_populates="reviews"
     )
-
+    
     fraud_assessment: Mapped["FraudAssessment"] = relationship(
-        back_populates="reviews"
+        back_populates="reviews",
+        foreign_keys=[fraud_assessment_id]
     )
 
     reviewer: Mapped["User | None"] = relationship(
