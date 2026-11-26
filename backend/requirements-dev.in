@@ -1,0 +1,7 @@
+-c requirements.txt
+-r requirements.in
+
+pytest
+httpx
+pytest-cov
+pip-tools
