@@ -5,6 +5,11 @@ from app.models.account import (
     AccountStatus
 )
 from app.models.beneficiary import Beneficiary
+from app.models.transaction import (
+    Transaction,
+    TransactionStatus
+)
+
 
 __all__ = [
     "User",
@@ -12,5 +17,7 @@ __all__ = [
     "Account",
     "AccountType",
     "AccountStatus",
-    "Beneficiary"
+    "Beneficiary",
+    "Transaction",
+    "TransactionStatus"
 ]
