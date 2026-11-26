@@ -229,3 +229,31 @@ COMPLETED, REJECTED and FAILED are terminal states.
 - Ensure reviews reference assessments of the correct transaction.
 - Preserve existing foreign keys and restricted deletion rules.
 - Validate these constraints through PostgreSQL integration tests.
+
+## Demo Database Seeding
+
+The local development database can be populated using:
+
+python -m scripts.seed_demo_data
+
+Run this command from the backend directory.
+
+### Initial Demo Records
+
+- 3 customers
+- 1 reviewer
+- 1 administrator
+- 3 bank accounts
+- 3 beneficiaries
+- Total initial account balance: INR 350000.00
+
+### Safety Rules
+
+- Restricted to the local development database.
+- Repeated execution does not create duplicate records.
+- Existing balances and passwords are preserved.
+- Disabled beneficiaries are not reactivated.
+- Database operations are executed within a transaction.
+- Demo users cannot authenticate until valid password
+  hashes are configured.
+- All demo records are fictional.
