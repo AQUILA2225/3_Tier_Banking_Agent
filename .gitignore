@@ -9,6 +9,8 @@ __pycache__/
 .env
 .env.*
 !.env.example
+.env.text
+!.env.test.example
 
 # Frontend
 node_modules/
