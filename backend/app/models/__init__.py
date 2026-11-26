@@ -13,6 +13,7 @@ from app.models.fraud_assessment import (
     FraudAssessment,
     RiskLevel
 )
+from app.models.review import Review, ReviewStatus
 
 
 __all__ = [
@@ -25,5 +26,7 @@ __all__ = [
     "Transaction",
     "TransactionStatus",
     "FraudAssessment",
-    "RiskLevel"
+    "RiskLevel",
+    "Review",
+    "ReviewStatus"
 ]
