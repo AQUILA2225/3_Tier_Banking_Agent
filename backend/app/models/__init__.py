@@ -4,12 +4,13 @@ from app.models.account import (
     AccountType,
     AccountStatus
 )
-
+from app.models.beneficiary import Beneficiary
 
 __all__ = [
     "User",
     "UserRole",
     "Account",
     "AccountType",
-    "AccountStatus"
+    "AccountStatus",
+    "Beneficiary"
 ]
