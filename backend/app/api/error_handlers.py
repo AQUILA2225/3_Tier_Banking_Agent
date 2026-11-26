@@ -14,6 +14,7 @@ from app.core.request_context import get_request_id
 logger = get_logger(__name__)
 
 
+# Build a standardized error response
 def build_error_response(
     request: Request,
     status_code: int,
@@ -28,12 +29,14 @@ def build_error_response(
         "request_id",
         get_request_id()
     )
+
     response_headers = dict(headers or {})
+
     response_headers["X-Request-ID"] = request_id
-    
+
     return JSONResponse(
         status_code=status_code,
-        headers=headers,
+        headers=response_headers,
         content={
             "success": False,
             "error": {
@@ -46,6 +49,7 @@ def build_error_response(
     )
 
 
+# Handle custom application exceptions
 async def app_exception_handler(
     request: Request,
     exc: AppException
@@ -59,9 +63,12 @@ async def app_exception_handler(
     headers = None
 
     if exc.status_code == 401:
-        headers = {"WWW-Authenticate": "Bearer"}
+        headers = {
+            "WWW-Authenticate": "Bearer"
+        }
 
     return build_error_response(
+        request=request,
         status_code=exc.status_code,
         code=exc.code,
         message=exc.message,
@@ -69,6 +76,8 @@ async def app_exception_handler(
         headers=headers
     )
 
+
+# Handle HTTP exceptions
 async def http_exception_handler(
     request: Request,
     exc: HTTPException
@@ -97,24 +106,31 @@ async def http_exception_handler(
     )
 
 
+# Handle request validation errors
 async def validation_exception_handler(
     request: Request,
     exc: RequestValidationError
 ) -> JSONResponse:
 
     errors = []
+
     for error in exc.errors():
+
         errors.append({
             "field": ".".join(
-                str(item) for item in error["loc"]
+                str(item)
+                for item in error["loc"]
             ),
             "type": error["type"],
             "message": "Invalid or missing field."
         })
 
-    logger.warning("Request validation failed")
+    logger.warning(
+        "Request validation failed"
+    )
 
     return build_error_response(
+        request=request,
         status_code=422,
         code="VALIDATION_ERROR",
         message="Request validation failed.",
@@ -122,6 +138,7 @@ async def validation_exception_handler(
     )
 
 
+# Handle unexpected internal server errors
 async def unhandled_exception_handler(
     request: Request,
     exc: Exception
@@ -132,9 +149,10 @@ async def unhandled_exception_handler(
         "request_id",
         "-"
     )
-    
+
     logger.error(
-        "Unhandled application exception: %s | failed_request_id=%s",
+        "Unhandled application exception: %s | "
+        "failed_request_id=%s",
         type(exc).__name__,
         request_id
     )
@@ -147,7 +165,10 @@ async def unhandled_exception_handler(
     )
 
 
-def register_exception_handlers(app: FastAPI) -> None:
+# Register all exception handlers
+def register_exception_handlers(
+    app: FastAPI
+) -> None:
 
     app.add_exception_handler(
         AppException,

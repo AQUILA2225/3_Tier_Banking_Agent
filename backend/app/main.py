@@ -62,7 +62,3 @@ fastapi_app.include_router(
 
 # Apply global CORS middleware
 app = configure_cors(fastapi_app)
-
-@fastapi_app.get("/test-internal-error")
-def test_internal_error():
-    raise RuntimeError("Simulated internal failure")

@@ -16,3 +16,10 @@ dist/
 
 # Editor
 .vscode/
+
+# Testing and coverage
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
