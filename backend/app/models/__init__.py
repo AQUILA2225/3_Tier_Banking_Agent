@@ -14,6 +14,7 @@ from app.models.fraud_assessment import (
     RiskLevel
 )
 from app.models.review import Review, ReviewStatus
+from app.models.audit_log import AuditLog
 
 
 __all__ = [
@@ -28,5 +29,6 @@ __all__ = [
     "FraudAssessment",
     "RiskLevel",
     "Review",
-    "ReviewStatus"
+    "ReviewStatus",
+    "AuditLog"
 ]
