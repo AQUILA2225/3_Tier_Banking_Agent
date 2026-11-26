@@ -9,6 +9,10 @@ from app.models.transaction import (
     Transaction,
     TransactionStatus
 )
+from app.models.fraud_assessment import (
+    FraudAssessment,
+    RiskLevel
+)
 
 
 __all__ = [
@@ -19,5 +23,7 @@ __all__ = [
     "AccountStatus",
     "Beneficiary",
     "Transaction",
-    "TransactionStatus"
+    "TransactionStatus",
+    "FraudAssessment",
+    "RiskLevel"
 ]
