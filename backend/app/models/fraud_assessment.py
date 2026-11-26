@@ -2,6 +2,7 @@ from datetime import datetime
 from enum import Enum
 from typing import Any
 from uuid import UUID, uuid4
+from typing import Any, TYPE_CHECKING
 
 from sqlalchemy import (
     CheckConstraint,
@@ -14,11 +15,13 @@ from sqlalchemy import (
     func
 )
 from sqlalchemy.dialects.postgresql import JSONB
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
 
-
+if TYPE_CHECKING:
+    from app.models.transaction import Transaction
+    from app.models.review import Review
 class RiskLevel(str, Enum):
     LOW = "LOW"
     MEDIUM = "MEDIUM"
@@ -86,4 +89,15 @@ class FraudAssessment(Base):
         DateTime(timezone=True),
         nullable=False,
         server_default=func.now()
+    )
+    
+        # ORM Relationships
+
+    transaction: Mapped["Transaction"] = relationship(
+        back_populates="fraud_assessments"
+    )
+
+    reviews: Mapped[list["Review"]] = relationship(
+        back_populates="fraud_assessment",
+        passive_deletes="all"
     )

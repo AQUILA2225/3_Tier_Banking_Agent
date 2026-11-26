@@ -1,6 +1,7 @@
 from datetime import datetime
 from enum import Enum
 from uuid import UUID, uuid4
+from typing import TYPE_CHECKING
 
 from sqlalchemy import (
     CheckConstraint,
@@ -13,11 +14,14 @@ from sqlalchemy import (
     func,
     text
 )
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
 
-
+if TYPE_CHECKING:
+    from app.models.transaction import Transaction
+    from app.models.fraud_assessment import FraudAssessment
+    from app.models.user import User
 class ReviewStatus(str, Enum):
     PENDING = "PENDING"
     APPROVED = "APPROVED"
@@ -103,4 +107,18 @@ class Review(Base):
     reviewed_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True),
         nullable=True
+    )
+    
+        # ORM Relationships
+
+    transaction: Mapped["Transaction"] = relationship(
+        back_populates="reviews"
+    )
+
+    fraud_assessment: Mapped["FraudAssessment"] = relationship(
+        back_populates="reviews"
+    )
+
+    reviewer: Mapped["User | None"] = relationship(
+        back_populates="reviews"
     )

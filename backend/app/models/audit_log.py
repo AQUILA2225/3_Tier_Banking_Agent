@@ -1,6 +1,7 @@
 from datetime import datetime
 from typing import Any
 from uuid import UUID, uuid4
+from typing import Any, TYPE_CHECKING
 
 from sqlalchemy import (
     CheckConstraint,
@@ -12,11 +13,13 @@ from sqlalchemy import (
     func
 )
 from sqlalchemy.dialects.postgresql import JSONB
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
 
-
+if TYPE_CHECKING:
+    from app.models.user import User
+    from app.models.transaction import Transaction
 class AuditLog(Base):
 
     __tablename__ = "audit_logs"
@@ -95,4 +98,14 @@ class AuditLog(Base):
         DateTime(timezone=True),
         nullable=False,
         server_default=func.now()
+    )
+    
+        # ORM Relationships
+
+    user: Mapped["User | None"] = relationship(
+        back_populates="audit_logs"
+    )
+
+    transaction: Mapped["Transaction | None"] = relationship(
+        back_populates="audit_logs"
     )

@@ -1,6 +1,7 @@
 from datetime import datetime
 from enum import Enum
 from uuid import UUID, uuid4
+from typing import TYPE_CHECKING
 
 from sqlalchemy import (
     Boolean,
@@ -11,10 +12,16 @@ from sqlalchemy import (
     func,
     true
 )
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
 
+if TYPE_CHECKING:
+    from app.models.account import Account
+    from app.models.beneficiary import Beneficiary
+    from app.models.transaction import Transaction
+    from app.models.review import Review
+    from app.models.audit_log import AuditLog
 
 class UserRole(str, Enum):
     CUSTOMER = "CUSTOMER"
@@ -80,4 +87,31 @@ class User(Base):
         nullable=False,
         server_default=func.now(),
         onupdate=func.now()
+    )
+    
+        # ORM Relationships
+
+    accounts: Mapped[list["Account"]] = relationship(
+        back_populates="owner",
+        passive_deletes="all"
+    )
+
+    beneficiaries: Mapped[list["Beneficiary"]] = relationship(
+        back_populates="owner",
+        passive_deletes="all"
+    )
+
+    initiated_transactions: Mapped[list["Transaction"]] = relationship(
+        back_populates="initiator",
+        passive_deletes="all"
+    )
+
+    reviews: Mapped[list["Review"]] = relationship(
+        back_populates="reviewer",
+        passive_deletes="all"
+    )
+
+    audit_logs: Mapped[list["AuditLog"]] = relationship(
+        back_populates="user",
+        passive_deletes="all"
     )

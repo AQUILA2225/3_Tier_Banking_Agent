@@ -2,6 +2,7 @@ from datetime import datetime
 from decimal import Decimal
 from enum import Enum
 from uuid import UUID, uuid4
+from typing import TYPE_CHECKING
 
 from sqlalchemy import (
     CheckConstraint,
@@ -14,11 +15,17 @@ from sqlalchemy import (
     Uuid,
     func
 )
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
 
-
+if TYPE_CHECKING:
+    from app.models.user import User
+    from app.models.account import Account
+    from app.models.beneficiary import Beneficiary
+    from app.models.fraud_assessment import FraudAssessment
+    from app.models.review import Review
+    from app.models.audit_log import AuditLog
 class TransactionStatus(str, Enum):
     PENDING = "PENDING"
     PENDING_REVIEW = "PENDING_REVIEW"
@@ -158,4 +165,39 @@ class Transaction(Base):
     completed_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True),
         nullable=True
+    )
+    
+        # ORM Relationships
+
+    initiator: Mapped["User"] = relationship(
+        back_populates="initiated_transactions"
+    )
+
+    source_account: Mapped["Account"] = relationship(
+        back_populates="outgoing_transactions",
+        foreign_keys=[source_account_id]
+    )
+
+    destination_account: Mapped["Account"] = relationship(
+        back_populates="incoming_transactions",
+        foreign_keys=[destination_account_id]
+    )
+
+    beneficiary: Mapped["Beneficiary"] = relationship(
+        back_populates="transactions"
+    )
+
+    fraud_assessments: Mapped[list["FraudAssessment"]] = relationship(
+        back_populates="transaction",
+        passive_deletes="all"
+    )
+
+    reviews: Mapped[list["Review"]] = relationship(
+        back_populates="transaction",
+        passive_deletes="all"
+    )
+
+    audit_logs: Mapped[list["AuditLog"]] = relationship(
+        back_populates="transaction",
+        passive_deletes="all"
     )

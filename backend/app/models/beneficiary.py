@@ -1,5 +1,6 @@
 from datetime import datetime
 from uuid import UUID, uuid4
+from typing import TYPE_CHECKING
 
 from sqlalchemy import (
     Boolean,
@@ -11,11 +12,14 @@ from sqlalchemy import (
     func,
     true
 )
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
 
-
+if TYPE_CHECKING:
+    from app.models.user import User
+    from app.models.account import Account
+    from app.models.transaction import Transaction
 class Beneficiary(Base):
 
     __tablename__ = "beneficiaries"
@@ -63,4 +67,19 @@ class Beneficiary(Base):
         DateTime(timezone=True),
         nullable=False,
         server_default=func.now()
+    )
+    
+        # ORM Relationships
+
+    owner: Mapped["User"] = relationship(
+        back_populates="beneficiaries"
+    )
+
+    account: Mapped["Account"] = relationship(
+        back_populates="beneficiaries"
+    )
+
+    transactions: Mapped[list["Transaction"]] = relationship(
+        back_populates="beneficiary",
+        passive_deletes="all"
     )
