@@ -3,7 +3,8 @@ from pathlib import Path
 from typing import Literal 
 from urllib.parse import urlsplit
 
-from pydantic import Field, field_validator
+from pydantic import Field, field_validator, SecretStr
+from sqlalchemy import URL
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 # Project root directory
@@ -50,6 +51,24 @@ class Settings(BaseSettings):
         le=86400
     )
 
+    # Database Configuration
+    db_host: str = "localhost"
+    db_port: int = Field(default=5432, ge=1, le=65535)
+    db_name: str = "banking_agent_db"
+    db_user: str = "banking_app"
+    db_password: SecretStr = Field(min_length=1)
+    
+    @property
+    def database_url(self) -> URL:
+        return URL.create(
+            drivername="postgresql+psycopg",
+            username=self.db_user,
+            password=self.db_password.get_secret_value(),
+            host=self.db_host,
+            port=self.db_port,
+            database=self.db_name
+    )
+    
     # Validate allowed origins
     @field_validator("cors_allowed_origins")
     @classmethod

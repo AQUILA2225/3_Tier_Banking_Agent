@@ -17,6 +17,7 @@ os.environ["CORS_ALLOWED_ORIGINS"] = (
 
 os.environ["CORS_ALLOW_CREDENTIALS"] = "false"
 os.environ["CORS_MAX_AGE"] = "600"
+os.environ["DB_PASSWORD"] = "test-only-password"
 
 
 from app.main import app
