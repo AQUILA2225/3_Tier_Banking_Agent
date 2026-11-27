@@ -1,9 +1,10 @@
+import re
 from functools import lru_cache
 from pathlib import Path 
 from typing import Literal 
 from urllib.parse import urlsplit
 
-from pydantic import Field, field_validator, SecretStr
+from pydantic import Field, field_validator, SecretStr, model_validator
 from sqlalchemy import URL
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -58,6 +59,49 @@ class Settings(BaseSettings):
     db_user: str = "banking_app"
     db_password: SecretStr = Field(min_length=1)
     
+    # JWT Security Configuration
+    jwt_secret_key: SecretStr = Field(
+        min_length=64,
+        max_length=64
+    )
+
+    jwt_algorithm: Literal["HS256"] = "HS256"
+    jwt_issuer: str = Field(
+        default="banking-agent-api",
+        min_length=1,
+        max_length=100
+    )
+
+    jwt_audience: str = Field(
+        default="banking-agent-client",
+        min_length=1,
+        max_length=100
+    )
+
+    # Token Expiration
+    access_token_expire_minutes: int = Field(
+        default=15,
+        ge=1,
+        le=60
+    )
+    refresh_token_expire_days: int = Field(
+        default=7,
+        ge=1,
+        le=30
+    )
+
+    # Password Policy
+    password_min_length: int = Field(
+        default=12,
+        ge=12,
+        le=128
+    )
+    password_max_length: int = Field(
+        default=128,
+        ge=12,
+        le=128
+    )
+    
     @property
     def database_url(self) -> URL:
         return URL.create(
@@ -111,17 +155,60 @@ class Settings(BaseSettings):
             _ = parsed.port
 
             validated_origins.append(origin)
-
         return list(dict.fromkeys(validated_origins))
+    
+            # Validate JWT secret key
+    @field_validator("jwt_secret_key")
+    @classmethod
+    def validate_jwt_secret_key(
+        cls,
+        value: SecretStr
+    ) -> SecretStr:
 
+        secret = value.get_secret_value()
+
+        if re.fullmatch(r"[0-9a-fA-F]{64}", secret) is None:
+            raise ValueError(
+                "JWT secret must contain exactly 64 hexadecimal characters."
+            )
+
+        return value
+
+    # Validate JWT issuer and audience
+    @field_validator("jwt_issuer", "jwt_audience")
+    @classmethod
+    def validate_jwt_identifier(
+        cls,
+        value: str
+    ) -> str:
+
+        if not value or any(char.isspace() for char in value):
+            raise ValueError(
+                "JWT identifiers must not contain whitespace."
+            )
+
+        return value
+
+    # Validate password policy
+    @model_validator(mode="after")
+    def validate_password_policy(self):
+
+        if self.password_min_length > self.password_max_length:
+            raise ValueError(
+                "Minimum password length cannot exceed maximum password length."
+            )
+
+        return self
 
     # Environment configuration
     model_config = SettingsConfigDict(
         env_file=Base_dir / ".env",
         env_file_encoding="utf-8",
         extra="ignore",
-        case_sensitive=False
+        case_sensitive=False,
+        hide_input_in_errors=True
     )
+
 
 @lru_cache
 def get_settings() -> Settings:

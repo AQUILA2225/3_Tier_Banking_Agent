@@ -19,6 +19,17 @@ os.environ["CORS_ALLOW_CREDENTIALS"] = "false"
 os.environ["CORS_MAX_AGE"] = "600"
 os.environ["DB_PASSWORD"] = "test-only-password"
 
+os.environ["JWT_SECRET_KEY"] = "ab" * 32
+os.environ["JWT_ALGORITHM"] = "HS256"
+os.environ["JWT_ISSUER"] = "banking-agent-api"
+os.environ["JWT_AUDIENCE"] = "banking-agent-client"
+
+os.environ["ACCESS_TOKEN_EXPIRE_MINUTES"] = "15"
+os.environ["REFRESH_TOKEN_EXPIRE_DAYS"] = "7"
+
+os.environ["PASSWORD_MIN_LENGTH"] = "12"
+os.environ["PASSWORD_MAX_LENGTH"] = "128"
+
 
 from app.main import app
 
