@@ -71,3 +71,32 @@ Administrators cannot bypass financial security policies.
 - Input validation.
 - HTTPS for deployed environments.
 - Automated security testing.
+
+## Password Security Implementation
+
+Module: backend/app/core/security.py
+
+### Argon2id Parameters
+
+- Time cost: 3
+- Memory cost: 65536 KiB
+- Parallelism: 4
+- Hash length: 32 bytes
+- Salt length: 16 bytes
+
+### Implemented Functions
+
+- validate_password()
+- hash_password()
+- verify_password()
+- verify_and_update_password()
+
+### Security Controls
+
+- Configurable password length validation.
+- Random salt for each password hash.
+- Rejection of malformed and disabled password hashes.
+- Support for upgrading outdated password hashes.
+- No plaintext password storage.
+- No silent password truncation.
+- 24 automated password security tests.
