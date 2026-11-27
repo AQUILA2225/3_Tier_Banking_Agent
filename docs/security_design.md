@@ -258,3 +258,47 @@ within an existing transaction.
 - Role-based access control.
 - Authentication rate limiting.
 - Authentication security event auditing.
+
+## Authentication REST API Implementation
+
+### Endpoints
+
+- POST /api/v1/auth/register
+- POST /api/v1/auth/login
+- POST /api/v1/auth/refresh
+- POST /api/v1/auth/logout
+
+### Security Controls
+
+- HttpOnly refresh token cookies.
+- SameSite Strict cookie protection.
+- HTTPS-only cookies in production.
+- Trusted origin validation.
+- Required custom CSRF protection header.
+- Explicit credentialed CORS configuration.
+- Sanitized authentication validation errors.
+- Access tokens returned through JSON.
+- Refresh token rotation and family revocation.
+- No-store caching policy on successful authentication
+  responses and sanitized validation responses.
+
+### Deployment Requirements
+
+- Production must use HTTPS.
+- Frontend and backend must use compatible same-site
+  deployment origins for SameSite Strict cookies.
+- Frontend requests must include credentials and
+  the X-CSRF-Protection header.
+
+### Automated Tests
+
+- 15 authentication API tests.
+
+### Pending Controls
+
+- Access token authentication dependencies.
+- Current user endpoint.
+- Role-based access control.
+- Authentication rate limiting.
+- Security event auditing.
+- Browser-based cookie and CORS integration testing.

@@ -23,6 +23,7 @@ class Settings(BaseSettings):
     ] = "development"
     
     debug: bool = False
+    auth_cookie_secure: bool = True
     
     # API configuration
     api_v1_prefix: str = Field(
@@ -196,6 +197,19 @@ class Settings(BaseSettings):
         if self.password_min_length > self.password_max_length:
             raise ValueError(
                 "Minimum password length cannot exceed maximum password length."
+            )
+
+        return self
+    
+    @model_validator(mode="after")
+    def validate_auth_cookie_security(self):
+
+        if (
+            self.app_env == "production"
+            and not self.auth_cookie_secure
+        ):
+            raise ValueError(
+            "Production requires secure authentication cookies."
             )
 
         return self

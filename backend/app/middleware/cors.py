@@ -26,6 +26,7 @@ def configure_cors(app: ASGIApp) -> CORSMiddleware:
         allow_headers=[
             "Authorization",
             "Content-Type",
+            "X-CSRF-Protection",
             "Accept"
         ],
 

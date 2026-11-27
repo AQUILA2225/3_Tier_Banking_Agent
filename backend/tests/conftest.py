@@ -29,6 +29,7 @@ os.environ["REFRESH_TOKEN_EXPIRE_DAYS"] = "7"
 
 os.environ["PASSWORD_MIN_LENGTH"] = "12"
 os.environ["PASSWORD_MAX_LENGTH"] = "128"
+os.environ["AUTH_COOKIE_SECURE"] = "false"
 
 
 from app.main import app
