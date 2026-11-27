@@ -104,6 +104,36 @@ class RefreshSessionService:
             refresh_token=refresh_token
         )
 
+    # Create a session inside an existing transaction
+    def create_session_in_transaction(
+        self,
+        user_id: UUID
+    ) -> TokenPair:
+
+        if not self.db.in_transaction():
+
+            raise RuntimeError(
+                "An active database transaction is required."
+            )
+
+        user = self._lock_user(user_id)
+
+        if (
+            user is None
+            or not user.is_active
+            or user.password_hash == "!LOGIN_DISABLED"
+        ):
+
+            raise RefreshSessionError(
+                "Unable to create session."
+            )
+
+        return self._issue_token_pair(
+            user_id=user.id,
+            family_id=uuid4()
+        )
+
+    # Create a session with its own transaction
     def create_session(
         self,
         user_id: UUID
@@ -111,20 +141,8 @@ class RefreshSessionService:
 
         with self.db.begin():
 
-            user = self._lock_user(user_id)
-
-            if (
-                user is None
-                or not user.is_active
-                or user.password_hash == "!LOGIN_DISABLED"
-            ):
-                raise RefreshSessionError(
-                    "Unable to create session."
-                )
-
-            tokens = self._issue_token_pair(
-                user_id=user.id,
-                family_id=uuid4()
+            tokens = self.create_session_in_transaction(
+                user_id
             )
 
         return tokens
@@ -132,9 +150,11 @@ class RefreshSessionService:
     def _decode_refresh_token(self, token: str):
 
         try:
+
             return decode_refresh_token(token)
 
         except TokenValidationError:
+
             raise RefreshSessionError(
                 "Invalid or expired refresh token."
             ) from None
@@ -157,6 +177,7 @@ class RefreshSessionService:
                 digest_refresh_token(token)
             )
         ):
+
             raise RefreshSessionError(
                 "Invalid refresh session."
             )
@@ -186,6 +207,7 @@ class RefreshSessionService:
                 or not user.is_active
                 or user.password_hash == "!LOGIN_DISABLED"
             ):
+
                 raise RefreshSessionError(
                     "Invalid refresh session."
                 )
@@ -239,7 +261,6 @@ class RefreshSessionService:
                 )
 
         # Raise only after the revocation transaction commits.
-
         if reuse_detected:
 
             raise RefreshTokenReuseError(

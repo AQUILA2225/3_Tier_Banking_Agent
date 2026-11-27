@@ -215,3 +215,46 @@ already verified user credentials.
 - 26 authentication schema unit tests.
 - 12 user repository integration tests.
 - 38 new automated tests.
+
+## Authentication Service Implementation
+
+### Module
+
+- app/services/auth_service.py
+
+### Implemented Features
+
+- Customer-only registration.
+- Secure Argon2id password hashing.
+- Duplicate email conflict handling.
+- Email-based user authentication.
+- Generic invalid credential errors.
+- Dummy password hash verification.
+- Inactive user login prevention.
+- Disabled password login prevention.
+- Automatic password hash upgrading.
+- JWT access and refresh token issuance.
+- Server-side refresh session creation.
+- Atomic login transaction management.
+- 14 authentication service integration tests.
+
+### Transaction Rules
+
+The authentication service owns the registration
+and login transactions.
+
+Credential verification, password hash upgrading
+and refresh session creation occur within the
+same login transaction.
+
+The refresh session service supports token issuance
+within an existing transaction.
+
+### Pending Security Controls
+
+- Authentication REST API endpoints.
+- Secure refresh cookies and CSRF protection.
+- Authentication dependencies.
+- Role-based access control.
+- Authentication rate limiting.
+- Authentication security event auditing.
