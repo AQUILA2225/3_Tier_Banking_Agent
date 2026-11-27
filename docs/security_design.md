@@ -100,3 +100,46 @@ Module: backend/app/core/security.py
 - No plaintext password storage.
 - No silent password truncation.
 - 24 automated password security tests.
+
+## JWT Token Security Implementation
+
+Module: backend/app/core/security.py
+
+### Implemented Functions
+
+- create_access_token()
+- create_refresh_token()
+- decode_token()
+- decode_access_token()
+- decode_refresh_token()
+
+### Token Configuration
+
+- Signing algorithm: HS256
+- Access token lifetime: 15 minutes
+- Refresh token lifetime: 7 days
+- Unique UUID-based token identifiers
+- UTC-based token timestamps
+
+### Security Controls
+
+- Cryptographic signature verification.
+- Explicit signing algorithm restriction.
+- Required JWT claim validation.
+- Issuer and audience verification.
+- Expiration and not-before validation.
+- Strict access and refresh token separation.
+- UUID validation for subject and token identifiers.
+- Maximum token lifetime enforcement.
+- Generic token validation errors.
+- No sensitive banking information in token payloads.
+- 30 automated JWT security tests.
+
+### Pending Implementation
+
+- Refresh session database model.
+- Refresh token digest storage.
+- Refresh token rotation and revocation.
+- User authentication endpoints.
+- Role-based access control.
+- HttpOnly cookie and CSRF protection.
