@@ -143,3 +143,47 @@ Module: backend/app/core/security.py
 - User authentication endpoints.
 - Role-based access control.
 - HttpOnly cookie and CSRF protection.
+
+## Refresh Session Lifecycle Management
+
+### Modules
+
+- app/repositories/refresh_session_repository.py
+- app/services/refresh_session_service.py
+
+### Implemented Features
+
+- SHA-256 refresh token digest generation.
+- Timing-resistant digest comparison.
+- Server-side session creation.
+- Atomic refresh token rotation.
+- User-level database row locking.
+- Refresh token family reuse detection.
+- Session family revocation.
+- Global user session revocation.
+- Inactive user validation.
+- Transaction rollback on rotation failure.
+- 15 lifecycle integration tests.
+
+### Transaction Rules
+
+Public refresh session service methods own their
+database transactions.
+
+All session-changing operations must follow the same
+user-row locking protocol.
+
+Token reuse errors are raised after committing
+family revocation.
+
+Session creation requires a trusted caller that has
+already verified user credentials.
+
+### Pending Security Controls
+
+- Authentication and authorization endpoints.
+- HttpOnly refresh cookies and CSRF protection.
+- Authentication rate limiting.
+- Concurrent refresh request testing.
+- Session retention and cleanup policy.
+- Security event auditing.
