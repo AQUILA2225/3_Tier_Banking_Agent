@@ -187,3 +187,31 @@ already verified user credentials.
 - Concurrent refresh request testing.
 - Session retention and cleanup policy.
 - Security event auditing.
+
+## Authentication Schemas and User Repository
+
+### Modules
+
+- app/schemas/auth.py
+- app/repositories/user_repository.py
+
+### Implemented Features
+
+- Email validation and normalization.
+- Full name normalization.
+- Registration password policy enforcement.
+- Password masking using SecretStr.
+- Registration role injection prevention.
+- Safe user response schemas.
+- Access token response schema.
+- User lookup by UUID and email.
+- Customer-only user creation.
+- Password hash updates.
+- Optional database row locking.
+- Service-controlled database transactions.
+
+### Automated Tests
+
+- 26 authentication schema unit tests.
+- 12 user repository integration tests.
+- 38 new automated tests.
