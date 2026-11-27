@@ -22,6 +22,7 @@ if TYPE_CHECKING:
     from app.models.transaction import Transaction
     from app.models.review import Review
     from app.models.audit_log import AuditLog
+    from app.models.refresh_session import RefreshSession
 
 class UserRole(str, Enum):
     CUSTOMER = "CUSTOMER"
@@ -112,6 +113,11 @@ class User(Base):
     )
 
     audit_logs: Mapped[list["AuditLog"]] = relationship(
+        back_populates="user",
+        passive_deletes="all"
+    )
+    
+    refresh_sessions: Mapped[list["RefreshSession"]] = relationship(
         back_populates="user",
         passive_deletes="all"
     )

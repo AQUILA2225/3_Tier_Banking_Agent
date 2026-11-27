@@ -257,3 +257,33 @@ Run this command from the backend directory.
 - Demo users cannot authenticate until valid password
   hashes are configured.
 - All demo records are fictional.
+
+## Refresh Sessions Table
+
+The refresh_sessions table supports server-side
+refresh token lifecycle management.
+
+### Features
+
+- UUID-based session identifiers.
+- User ownership through a foreign key.
+- Unique JWT identifiers and token digests.
+- SHA-256 refresh token digest storage.
+- Token family tracking.
+- Session expiration timestamps.
+- Revocation timestamps and reasons.
+- Database integrity constraints.
+- Bidirectional User ORM relationship.
+- 14 refresh session integration tests.
+
+### Security Rules
+
+- Never store raw refresh tokens.
+- Retain rotated tokens for reuse detection.
+- Validate session ownership before refreshing.
+- Perform token rotation atomically.
+- Revoke the affected token family on confirmed reuse.
+- Enforce expiration and revocation during refresh.
+
+The session management service will enforce
+these lifecycle rules in subsequent steps.

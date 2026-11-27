@@ -40,6 +40,7 @@ def test_database_tables(test_engine: Engine):
         "fraud_assessments",
         "reviews",
         "audit_logs",
+        "refresh_sessions",
         "alembic_version"
     }
 

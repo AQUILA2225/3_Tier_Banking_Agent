@@ -15,6 +15,7 @@ from app.models.fraud_assessment import (
 )
 from app.models.review import Review, ReviewStatus
 from app.models.audit_log import AuditLog
+from app.models.refresh_session import RefreshSession, RevocationReason
 
 
 __all__ = [
@@ -30,5 +31,7 @@ __all__ = [
     "RiskLevel",
     "Review",
     "ReviewStatus",
-    "AuditLog"
+    "AuditLog",
+    "RefreshSession",
+    "RevocationReason"
 ]
