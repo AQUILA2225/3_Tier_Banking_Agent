@@ -11,11 +11,8 @@ from fastapi import (
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from fastapi.routing import APIRoute
-
 from sqlalchemy.orm import Session
-
 from app.core.config import settings
-
 from app.core.auth_cookies import (
     REFRESH_COOKIE_NAME,
     set_refresh_cookie,
@@ -26,7 +23,6 @@ from app.core.auth_cookies import (
 from app.core.csrf import require_trusted_origin
 from app.core.exceptions import UnauthorizedException
 from app.db.session import get_db
-
 from app.schemas.auth import (
     RegisterRequest,
     LoginRequest,
@@ -36,14 +32,12 @@ from app.schemas.auth import (
 )
 
 from app.services.auth_service import AuthService
-
 from app.services.refresh_session_service import (
     RefreshSessionService,
     RefreshSessionError,
     TokenPair
 )
-
-
+from app.api.deps import CurrentUser
 class AuthRoute(APIRoute):
 
     def get_route_handler(self):
@@ -85,7 +79,6 @@ class AuthRoute(APIRoute):
 router = APIRouter(
     prefix="/auth",
     tags=["Authentication"],
-    dependencies=[Depends(require_trusted_origin)],
     route_class=AuthRoute
 )
 
@@ -116,7 +109,8 @@ def build_token_response(
 @router.post(
     "/register",
     response_model=UserResponse,
-    status_code=status.HTTP_201_CREATED
+    status_code=status.HTTP_201_CREATED,
+    dependencies=[Depends(require_trusted_origin)]
 )
 def register(
     request: RegisterRequest,
@@ -128,7 +122,8 @@ def register(
 
 @router.post(
     "/login",
-    response_model=TokenResponse
+    response_model=TokenResponse,
+    dependencies=[Depends(require_trusted_origin)]
 )
 def login(
     request: LoginRequest,
@@ -143,7 +138,8 @@ def login(
 
 @router.post(
     "/refresh",
-    response_model=TokenResponse
+    response_model=TokenResponse,
+    dependencies=[Depends(require_trusted_origin)]
 )
 def refresh(
     request: Request,
@@ -178,7 +174,8 @@ def refresh(
 
 @router.post(
     "/logout",
-    response_model=MessageResponse
+    response_model=MessageResponse,
+    dependencies=[Depends(require_trusted_origin)]
 )
 def logout(
     request: Request,
@@ -206,4 +203,17 @@ def logout(
 
     return MessageResponse(
         message="Logged out successfully."
+    )
+    
+@router.get(
+    "/me",
+    response_model=UserResponse,
+    dependencies=[]
+)
+def get_me(
+    current_user: CurrentUser
+) -> UserResponse:
+
+    return UserResponse.model_validate(
+        current_user
     )

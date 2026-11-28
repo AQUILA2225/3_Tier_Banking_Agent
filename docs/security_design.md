@@ -302,3 +302,45 @@ within an existing transaction.
 - Authentication rate limiting.
 - Security event auditing.
 - Browser-based cookie and CORS integration testing.
+
+## Access Token Authentication Dependencies
+
+### Modules
+
+- app/api/deps.py
+- app/api/v1/endpoints/auth.py
+
+### Protected Endpoint
+
+GET /api/v1/auth/me
+
+### Implemented Features
+
+- HTTP bearer token extraction.
+- JWT access token validation.
+- Refresh token substitution prevention.
+- Database-backed current user retrieval.
+- Inactive and disabled user rejection.
+- Reusable CurrentUser dependency.
+- Safe user profile response.
+- WWW-Authenticate bearer challenge.
+- Authentication response cache protection.
+- Swagger bearer authentication integration.
+- 16 authentication dependency API tests.
+
+### Security Rules
+
+- Never trust user identity without JWT validation.
+- Retrieve current user status and role from PostgreSQL.
+- Never return password hashes in API responses.
+- Apply CSRF protection to authentication POST endpoints.
+- Use bearer authentication for the read-only current
+  user endpoint.
+
+### Pending Controls
+
+- Role-based access control.
+- Resource ownership authorization.
+- Authentication rate limiting.
+- Security event auditing.
+- Immediate access token revocation, if required.
