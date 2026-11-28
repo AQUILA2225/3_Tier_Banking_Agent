@@ -344,3 +344,45 @@ GET /api/v1/auth/me
 - Authentication rate limiting.
 - Security event auditing.
 - Immediate access token revocation, if required.
+
+## Role-Based Access Control
+
+### Modules
+
+- app/core/permissions.py
+- app/api/deps.py
+
+### Implemented Features
+
+- Centralized permission definitions.
+- Immutable role-to-permission mapping.
+- Customer, reviewer and administrator roles.
+- Default-deny authorization policy.
+- Principle of least privilege.
+- Reusable role-based dependencies.
+- Reusable permission-based dependencies.
+- Multiple required permission checks.
+- Multiple allowed role checks.
+- HTTP 403 authorization errors.
+- Database-backed role validation.
+- Profile endpoint permission enforcement.
+
+### Authorization Rules
+
+- Customers can perform permitted customer operations.
+- Reviewers can access and decide assigned reviews.
+- Administrators can perform permitted user
+  administration and audit operations.
+- Administrators do not inherit customer or
+  reviewer permissions.
+- Unknown roles are denied access.
+- Permissions do not replace resource ownership checks.
+- Reviewers must not approve their own transactions.
+- Financial operations require additional business
+  policy and transaction state validation.
+
+### Automated Tests
+
+- 20 permission management unit tests.
+- 23 authorization API tests.
+- 43 new automated tests.

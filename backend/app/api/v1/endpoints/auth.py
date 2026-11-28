@@ -37,7 +37,9 @@ from app.services.refresh_session_service import (
     RefreshSessionError,
     TokenPair
 )
-from app.api.deps import CurrentUser
+from app.api.deps import require_permissions
+from app.core.permissions import Permission
+from app.models import User
 class AuthRoute(APIRoute):
 
     def get_route_handler(self):
@@ -207,11 +209,17 @@ def logout(
     
 @router.get(
     "/me",
-    response_model=UserResponse,
-    dependencies=[]
+    response_model=UserResponse
 )
 def get_me(
-    current_user: CurrentUser
+    current_user: Annotated[
+        User,
+        Depends(
+            require_permissions(
+                Permission.PROFILE_READ
+            )
+        )
+    ]
 ) -> UserResponse:
 
     return UserResponse.model_validate(
