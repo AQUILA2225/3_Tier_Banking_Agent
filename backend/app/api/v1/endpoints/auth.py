@@ -45,6 +45,19 @@ from app.core.auth_rate_limit import (
     AuthAction,
     require_auth_rate_limit
 )
+
+from uuid import UUID
+
+from app.core.security import decode_access_token
+from app.core.exceptions import ConflictException
+from app.services.audit_service import (
+    AuditService,
+    AuthAuditEvent
+)
+
+from app.services.refresh_session_service import (
+    RefreshTokenReuseError
+)
 class AuthRoute(APIRoute):
 
     def get_route_handler(self):
@@ -112,6 +125,21 @@ def build_token_response(
         expires_in=settings.access_token_expire_minutes * 60
     )
 
+def audit_auth_event(
+    request: Request,
+    event: AuthAuditEvent,
+    user_id: UUID | None = None
+) -> None:
+
+    AuditService.record_auth_event(
+        event,
+        user_id=user_id,
+        request_id=getattr(
+            request.state,
+            "request_id",
+            None
+        )
+    )
 
 @router.post(
     "/register",
@@ -125,10 +153,30 @@ def build_token_response(
 )
 def register(
     request: RegisterRequest,
+    http_request: Request,
     db: DatabaseSession
 ) -> UserResponse:
 
-    return AuthService(db).register(request)
+    try:
+
+        user = AuthService(db).register(request)
+
+    except ConflictException:
+
+        audit_auth_event(
+            http_request,
+            AuthAuditEvent.REGISTER_FAILURE
+        )
+
+        raise
+
+    audit_auth_event(
+        http_request,
+        AuthAuditEvent.REGISTER_SUCCESS,
+        user_id=user.id
+    )
+
+    return user
 
 @router.post(
     "/login",
@@ -141,15 +189,39 @@ def register(
 )
 def login(
     request: LoginRequest,
+    http_request: Request,
     response: Response,
     db: DatabaseSession
 ) -> TokenResponse:
 
-    tokens = AuthService(db).login(request)
+    try:
 
-    return build_token_response(response, tokens)
+        tokens = AuthService(db).login(request)
 
+    except UnauthorizedException:
 
+        audit_auth_event(
+            http_request,
+            AuthAuditEvent.LOGIN_FAILURE
+        )
+
+        raise
+
+    claims = decode_access_token(
+        tokens.access_token
+    )
+
+    audit_auth_event(
+        http_request,
+        AuthAuditEvent.LOGIN_SUCCESS,
+        user_id=UUID(claims.sub)
+    )
+
+    return build_token_response(
+        response,
+        tokens
+    )
+    
 @router.post(
     "/refresh",
     response_model=TokenResponse,
@@ -171,6 +243,11 @@ def refresh(
 
     if not refresh_token:
 
+        audit_auth_event(
+            request,
+            AuthAuditEvent.REFRESH_FAILURE
+        )
+
         raise UnauthorizedException(
             "Invalid or expired refresh session."
         )
@@ -181,14 +258,42 @@ def refresh(
             refresh_token
         )
 
-    except RefreshSessionError:
+    except RefreshTokenReuseError:
+
+        audit_auth_event(
+            request,
+            AuthAuditEvent.REFRESH_REUSE
+        )
 
         raise UnauthorizedException(
             "Invalid or expired refresh session."
         ) from None
 
-    return build_token_response(response, tokens)
+    except RefreshSessionError:
 
+        audit_auth_event(
+            request,
+            AuthAuditEvent.REFRESH_FAILURE
+        )
+
+        raise UnauthorizedException(
+            "Invalid or expired refresh session."
+        ) from None
+
+    claims = decode_access_token(
+        tokens.access_token
+    )
+
+    audit_auth_event(
+        request,
+        AuthAuditEvent.REFRESH_SUCCESS,
+        user_id=UUID(claims.sub)
+    )
+
+    return build_token_response(
+        response,
+        tokens
+    )
 
 @router.post(
     "/logout",
@@ -209,6 +314,8 @@ def logout(
         REFRESH_COOKIE_NAME
     )
 
+    event = AuthAuditEvent.LOGOUT_NO_SESSION
+
     if refresh_token:
 
         try:
@@ -217,9 +324,16 @@ def logout(
                 refresh_token
             )
 
+            event = AuthAuditEvent.LOGOUT_SUCCESS
+
         except RefreshSessionError:
 
             pass
+
+    audit_auth_event(
+        request,
+        event
+    )
 
     clear_refresh_cookie(response)
 

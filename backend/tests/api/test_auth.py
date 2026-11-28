@@ -25,7 +25,7 @@ from app.services.refresh_session_service import (
     RefreshSessionError,
     TokenPair
 )
-
+from app.core.security import create_access_token
 
 pytestmark = pytest.mark.api
 
@@ -78,7 +78,7 @@ def auth_client():
 def token_pair():
 
     return TokenPair(
-        access_token="test-access-token",
+        access_token=create_access_token(uuid4()),
         refresh_token="test-refresh-token"
     )
 

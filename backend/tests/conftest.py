@@ -41,6 +41,8 @@ os.environ["AUTH_RATE_LIMIT_MAX_KEYS"] = "10000"
 
 from app.main import app
 from app.core.auth_rate_limit import auth_rate_limiter
+from unittest.mock import Mock
+from app.services.audit_service import AuditService
 
 @pytest.fixture
 def client() -> Generator[TestClient, None, None]:
@@ -60,3 +62,24 @@ def reset_auth_rate_limiter():
     yield
 
     auth_rate_limiter.reset()
+    
+@pytest.fixture
+def audit_mock(monkeypatch):
+
+    mock = Mock(return_value=True)
+
+    monkeypatch.setattr(
+        AuditService,
+        "record_auth_event",
+        mock
+    )
+
+    return mock
+
+
+@pytest.fixture(autouse=True)
+def isolate_auth_auditing(request):
+
+    if request.node.get_closest_marker("integration") is None:
+
+        request.getfixturevalue("audit_mock")

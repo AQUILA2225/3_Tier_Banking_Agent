@@ -22,7 +22,7 @@ from app.services.refresh_session_service import (
     RefreshSessionService,
     TokenPair
 )
-
+from app.core.security import create_access_token
 
 pytestmark = pytest.mark.api
 
@@ -72,7 +72,7 @@ def auth_client():
 def mocked_services(monkeypatch):
 
     tokens = TokenPair(
-        access_token="test-access-token",
+        access_token=create_access_token(uuid4()),
         refresh_token="test-refresh-token"
     )
 

@@ -6,6 +6,10 @@ from app.core.config import settings
 from app.core.rate_limiter import (
     SlidingWindowRateLimiter
 )
+from app.services.audit_service import (
+    AuditService,
+    AuthAuditEvent
+)
 
 class AuthAction(str, Enum):
 
@@ -62,7 +66,14 @@ def require_auth_rate_limit(
         )
 
         if not result.allowed:
-
+            AuditService.record_auth_event(
+                AuthAuditEvent.RATE_LIMIT_EXCEEDED,
+                request_id=getattr(
+                    request.state,
+                    "request_id",
+                    None
+                )
+            )
             raise HTTPException(
                 status_code=status.HTTP_429_TOO_MANY_REQUESTS,
                 detail=(

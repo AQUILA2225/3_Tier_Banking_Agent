@@ -435,3 +435,105 @@ storage and trusted reverse proxy configuration.
 
 Account-based throttling and upstream request
 protection are additional security requirements.
+
+## Authentication Security Event Auditing
+
+### Module
+
+- app/services/audit_service.py
+
+### Database Table
+
+- audit_logs
+
+### Implemented Features
+
+- 11 predefined authentication audit event types.
+- Registration success and failure auditing.
+- Login success and failure auditing.
+- Refresh success and failure auditing.
+- Refresh token reuse detection auditing.
+- Logout event auditing.
+- Rate-limit violation auditing.
+- CSRF rejection auditing.
+- Request correlation ID tracking.
+- Verified user ID association where available.
+- Independent audit persistence transactions.
+- Best-effort audit failure handling.
+- Credential-safe structured event details.
+
+### Security Rules
+
+- Never store passwords or password hashes.
+- Never store access or refresh tokens.
+- Never store complete authentication request bodies.
+- Never associate failed credentials with an
+  unverified user identity.
+- Use predefined event types and structured fields.
+
+### Automated Tests
+
+- 7 audit service integration tests.
+- 15 authentication audit API tests.
+- 22 new automated tests.
+
+### Pending Improvements
+
+- Append-only database permissions.
+- Audit log retention and archival.
+- Audit event aggregation and abuse protection.
+- Security monitoring and alerting.
+- Administrator audit log retrieval endpoints.
+- Independent transaction durability testing.
+- Financial transaction audit atomicity.
+
+## Authentication Security Event Auditing
+
+### Module
+
+- app/services/audit_service.py
+
+### Database Table
+
+- audit_logs
+
+### Implemented Features
+
+- 11 predefined authentication audit event types.
+- Registration success and failure auditing.
+- Login success and failure auditing.
+- Refresh success and failure auditing.
+- Refresh token reuse detection auditing.
+- Logout event auditing.
+- Rate-limit violation auditing.
+- CSRF rejection auditing.
+- Request correlation ID tracking.
+- Verified user ID association where available.
+- Independent audit persistence transactions.
+- Best-effort audit failure handling.
+- Credential-safe structured event details.
+
+### Security Rules
+
+- Never store passwords or password hashes.
+- Never store access or refresh tokens.
+- Never store complete authentication request bodies.
+- Never associate failed credentials with an
+  unverified user identity.
+- Use predefined event types and structured fields.
+
+### Automated Tests
+
+- 7 audit service integration tests.
+- 15 authentication audit API tests.
+- 22 new automated tests.
+
+### Pending Improvements
+
+- Append-only database permissions.
+- Audit log retention and archival.
+- Audit event aggregation and abuse protection.
+- Security monitoring and alerting.
+- Administrator audit log retrieval endpoints.
+- Independent transaction durability testing.
+- Financial transaction audit atomicity.
