@@ -40,6 +40,11 @@ from app.services.refresh_session_service import (
 from app.api.deps import require_permissions
 from app.core.permissions import Permission
 from app.models import User
+
+from app.core.auth_rate_limit import (
+    AuthAction,
+    require_auth_rate_limit
+)
 class AuthRoute(APIRoute):
 
     def get_route_handler(self):
@@ -112,7 +117,11 @@ def build_token_response(
     "/register",
     response_model=UserResponse,
     status_code=status.HTTP_201_CREATED,
-    dependencies=[Depends(require_trusted_origin)]
+    dependencies=[
+        Depends(require_trusted_origin),
+        Depends(require_auth_rate_limit(AuthAction.REGISTER)
+        )
+    ]
 )
 def register(
     request: RegisterRequest,
@@ -121,11 +130,14 @@ def register(
 
     return AuthService(db).register(request)
 
-
 @router.post(
     "/login",
     response_model=TokenResponse,
-    dependencies=[Depends(require_trusted_origin)]
+    dependencies=[
+        Depends(require_trusted_origin),
+        Depends(require_auth_rate_limit(AuthAction.LOGIN)
+        )
+    ]
 )
 def login(
     request: LoginRequest,
@@ -141,7 +153,11 @@ def login(
 @router.post(
     "/refresh",
     response_model=TokenResponse,
-    dependencies=[Depends(require_trusted_origin)]
+    dependencies=[
+        Depends(require_trusted_origin),
+        Depends(require_auth_rate_limit(AuthAction.REFRESH)
+        )
+    ]
 )
 def refresh(
     request: Request,
@@ -177,7 +193,11 @@ def refresh(
 @router.post(
     "/logout",
     response_model=MessageResponse,
-    dependencies=[Depends(require_trusted_origin)]
+    dependencies=[
+        Depends(require_trusted_origin),
+        Depends(require_auth_rate_limit(AuthAction.LOGOUT)
+        )
+    ]
 )
 def logout(
     request: Request,

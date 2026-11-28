@@ -386,3 +386,52 @@ GET /api/v1/auth/me
 - 20 permission management unit tests.
 - 23 authorization API tests.
 - 43 new automated tests.
+
+## Authentication Rate Limiting
+
+### Modules
+
+- app/core/rate_limiter.py
+- app/core/auth_rate_limit.py
+
+### Implemented Features
+
+- Sliding-window rate limiting.
+- Configurable authentication request limits.
+- Endpoint-specific and IP-based request tracking.
+- Thread-safe request counters.
+- Monotonic time measurement.
+- Expired request cleanup.
+- Bounded identity tracking.
+- HTTP 429 Too Many Requests responses.
+- Retry-After response header.
+- Failed login attempt counting.
+- Automated test isolation.
+
+### Default Policies
+
+Window: 60 seconds
+
+- Registration: 5 requests per IP.
+- Login: 10 requests per IP.
+- Refresh: 30 requests per IP.
+- Logout: 30 requests per IP.
+
+### Automated Tests
+
+- 20 rate limiter unit tests.
+- 8 authentication rate-limiting API tests.
+- 28 new automated tests.
+
+### Deployment Limitations
+
+The rate limiter stores request history in memory.
+
+Request history is lost when the server restarts.
+Multiple worker processes do not share counters.
+
+Distributed deployments require shared rate-limit
+storage and trusted reverse proxy configuration.
+
+Account-based throttling and upstream request
+protection are additional security requirements.

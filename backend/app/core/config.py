@@ -103,6 +103,42 @@ class Settings(BaseSettings):
         le=128
     )
     
+    auth_rate_limit_window_seconds: int = Field(
+        default=60,
+        ge=1,
+        le=3600
+    )
+
+    auth_register_rate_limit: int = Field(
+        default=5,
+        ge=1,
+        le=1000
+    )
+
+    auth_login_rate_limit: int = Field(
+        default=10,
+        ge=1,
+        le=1000
+    )
+
+    auth_refresh_rate_limit: int = Field(
+        default=30,
+        ge=1,
+        le=1000
+    )
+
+    auth_logout_rate_limit: int = Field(
+        default=30,
+        ge=1,
+        le=1000
+    )
+
+    auth_rate_limit_max_keys: int = Field(
+        default=10000,
+        ge=100,
+        le=100000
+    )
+    
     @property
     def database_url(self) -> URL:
         return URL.create(
