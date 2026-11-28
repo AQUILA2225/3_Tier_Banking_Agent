@@ -537,3 +537,61 @@ protection are additional security requirements.
 - Administrator audit log retrieval endpoints.
 - Independent transaction durability testing.
 - Financial transaction audit atomicity.
+
+## Phase 4 Final Security Review
+
+### Authentication
+
+- Argon2id password hashing.
+- Password policy enforcement.
+- JWT access and refresh tokens.
+- Refresh token digest storage.
+- Refresh token rotation and reuse detection.
+- Refresh session revocation.
+- Database-backed user authentication.
+
+### Authorization
+
+- Customer, reviewer and administrator roles.
+- Centralized permission management.
+- Default-deny authorization.
+- Principle of least privilege.
+
+### API Security
+
+- Explicit CORS configuration.
+- Trusted origin validation.
+- CSRF protection.
+- HttpOnly refresh cookies.
+- Secure cookies required in production.
+- Authentication rate limiting.
+- Sanitized validation errors.
+- Authentication response cache protection.
+
+### Security Auditing
+
+- Structured authentication security events.
+- Request correlation IDs.
+- Independent audit persistence.
+- Sensitive credential exclusion.
+
+### Known Limitations
+
+- Access tokens remain valid until expiration
+  unless the user becomes ineligible.
+- Rate limiting is process-local and IP-based.
+- Audit persistence is best-effort.
+- Audit records are not yet append-only.
+- Resource ownership checks are pending.
+- Concurrent refresh behavior requires further testing.
+- Browser-based security testing is pending.
+- MFA, password reset and email verification
+  are not implemented.
+- Production deployment requires further hardening.
+
+### Project Scope
+
+This application is a simulated banking system
+developed for educational and portfolio purposes.
+It is not intended to process real financial
+transactions.

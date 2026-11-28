@@ -140,7 +140,7 @@ def test_unknown_endpoint(client: TestClient):
 
     assert data["success"] is False
 
-    assert data["error"]["code"] == "HTTP_404"
+    assert data["error"]["code"] == "NOT_FOUND"
 
 
 def test_method_not_allowed(client: TestClient):
@@ -152,7 +152,7 @@ def test_method_not_allowed(client: TestClient):
     assert response.status_code == 405
 
     assert response.json()["error"]["code"] == (
-        "HTTP_405"
+    "METHOD_NOT_ALLOWED"
     )
 
 

@@ -1,55 +1,94 @@
+import logging
 
+from http import HTTPStatus
 from typing import Any
 
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
-from starlette.exceptions import HTTPException
+from starlette.exceptions import HTTPException as StarletteHTTPException
 
+from app.core.config import settings
 from app.core.exceptions import AppException
-from app.core.logging import get_logger
-from app.core.request_context import get_request_id
+from app.core.auth_cookies import disable_auth_caching
 
 
-logger = get_logger(__name__)
+logger = logging.getLogger(__name__)
 
 
-# Build a standardized error response
+# --------------------------------------------------
+# Authentication response cache protection
+# --------------------------------------------------
+
+def protect_auth_error_response(
+    request: Request,
+    response: JSONResponse
+) -> JSONResponse:
+
+    auth_path = f"{settings.api_v1_prefix}/auth"
+
+    path = request.url.path
+
+    if path == auth_path or path.startswith(
+        f"{auth_path}/"
+    ):
+
+        disable_auth_caching(response)
+
+    return response
+
+
+# --------------------------------------------------
+# Common error response builder
+# --------------------------------------------------
+
 def build_error_response(
     request: Request,
     status_code: int,
     code: str,
     message: str,
-    details: Any = None,
+    details: list[Any] | None = None,
     headers: dict[str, str] | None = None
 ) -> JSONResponse:
 
     request_id = getattr(
         request.state,
         "request_id",
-        get_request_id()
+        None
     )
 
     response_headers = dict(headers or {})
 
-    response_headers["X-Request-ID"] = request_id
+    if request_id is not None:
 
-    return JSONResponse(
+        request_id = str(request_id)
+
+        response_headers["X-Request-ID"] = request_id
+
+    response = JSONResponse(
         status_code=status_code,
-        headers=response_headers,
         content={
             "success": False,
             "error": {
                 "code": code,
                 "message": message,
-                "details": details,
+                "details": details if details is not None else [],
                 "request_id": request_id
             }
-        }
+        },
+        headers=response_headers
+    )
+
+    return protect_auth_error_response(
+        request,
+        response
     )
 
 
-# Handle custom application exceptions
+# --------------------------------------------------
+# Custom application exception handler
+# --------------------------------------------------
+
 async def app_exception_handler(
     request: Request,
     exc: AppException
@@ -63,6 +102,7 @@ async def app_exception_handler(
     headers = None
 
     if exc.status_code == 401:
+
         headers = {
             "WWW-Authenticate": "Bearer"
         }
@@ -77,68 +117,109 @@ async def app_exception_handler(
     )
 
 
-# Handle HTTP exceptions
+# --------------------------------------------------
+# HTTP exception handler
+# --------------------------------------------------
+
 async def http_exception_handler(
     request: Request,
-    exc: HTTPException
+    exc: StarletteHTTPException
 ) -> JSONResponse:
 
-    messages = {
-        400: "Invalid request.",
-        401: "Authentication required.",
-        403: "Access denied.",
-        404: "Requested resource not found.",
-        405: "Method not allowed.",
-        409: "Resource conflict.",
-        429: "Too many requests.",
-        503: "Service temporarily unavailable."
-    }
+    logger.warning(
+        "HTTP exception: %s",
+        exc.status_code
+    )
+
+    try:
+
+        code = HTTPStatus(exc.status_code).name
+
+    except ValueError:
+
+        code = "HTTP_ERROR"
+
+    message = (
+        exc.detail
+        if isinstance(exc.detail, str)
+        else "An HTTP error occurred."
+    )
+
+    headers = dict(exc.headers or {})
+
+    if exc.status_code == 401:
+
+        if not any(
+            key.lower() == "www-authenticate"
+            for key in headers
+        ):
+
+            headers["WWW-Authenticate"] = "Bearer"
 
     return build_error_response(
         request=request,
         status_code=exc.status_code,
-        code=f"HTTP_{exc.status_code}",
-        message=messages.get(
-            exc.status_code,
-            "Request could not be completed."
-        ),
-        headers=exc.headers
+        code=code,
+        message=message,
+        headers=headers
     )
 
 
-# Handle request validation errors
+# --------------------------------------------------
+# Request validation exception handler
+# --------------------------------------------------
+
 async def validation_exception_handler(
     request: Request,
     exc: RequestValidationError
 ) -> JSONResponse:
 
-    errors = []
+    logger.warning(
+        "Request validation failed"
+    )
+
+    auth_path = f"{settings.api_v1_prefix}/auth"
+
+    path = request.url.path
+
+    if path == auth_path or path.startswith(
+        f"{auth_path}/"
+    ):
+
+        return build_error_response(
+            request=request,
+            status_code=422,
+            code="VALIDATION_ERROR",
+            message="Invalid authentication request.",
+            details=[]
+        )
+
+    details = []
 
     for error in exc.errors():
 
-        errors.append({
+        details.append({
             "field": ".".join(
                 str(item)
                 for item in error["loc"]
             ),
-            "type": error["type"],
-            "message": "Invalid or missing field."
+            "message": error["msg"],
+            "type": error["type"]
         })
-
-    logger.warning(
-        "Request validation failed"
-    )
 
     return build_error_response(
         request=request,
         status_code=422,
         code="VALIDATION_ERROR",
         message="Request validation failed.",
-        details=errors
+        details=details
     )
 
 
-# Handle unexpected internal server errors
+# --------------------------------------------------
+# Unexpected server exception handler
+# --------------------------------------------------
+
 async def unhandled_exception_handler(
     request: Request,
     exc: Exception
@@ -147,7 +228,7 @@ async def unhandled_exception_handler(
     request_id = getattr(
         request.state,
         "request_id",
-        "-"
+        None
     )
 
     logger.error(
@@ -165,7 +246,10 @@ async def unhandled_exception_handler(
     )
 
 
+# --------------------------------------------------
 # Register all exception handlers
+# --------------------------------------------------
+
 def register_exception_handlers(
     app: FastAPI
 ) -> None:
@@ -176,7 +260,7 @@ def register_exception_handlers(
     )
 
     app.add_exception_handler(
-        HTTPException,
+        StarletteHTTPException,
         http_exception_handler
     )
 

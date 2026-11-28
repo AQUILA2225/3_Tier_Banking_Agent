@@ -1,0 +1,10 @@
+ .env.example                              |   9 [32m+[m[31m-[m
+ backend/app/api/v1/endpoints/auth.py      |  30 [32m++[m[31m-[m
+ backend/app/core/auth_rate_limit.py       |  80 [32m++++++++[m
+ backend/app/core/config.py                |  36 [32m++++[m
+ backend/app/core/rate_limiter.py          | 144 [32m+++++++++++++[m
+ backend/tests/api/test_auth_rate_limit.py | 328 [32m++++++++++++++++++++++++++++++[m
+ backend/tests/conftest.py                 |  17 [32m++[m
+ backend/tests/unit/test_rate_limiter.py   | 256 [32m+++++++++++++++++++++++[m
+ docs/security_design.md                   |  51 [32m++++[m[31m-[m
+ 9 files changed, 944 insertions(+), 7 deletions(-)

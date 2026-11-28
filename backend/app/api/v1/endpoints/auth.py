@@ -58,6 +58,8 @@ from app.services.audit_service import (
 from app.services.refresh_session_service import (
     RefreshTokenReuseError
 )
+from app.core.exceptions import AppException
+from starlette.exceptions import HTTPException as StarletteHTTPException
 class AuthRoute(APIRoute):
 
     def get_route_handler(self):
